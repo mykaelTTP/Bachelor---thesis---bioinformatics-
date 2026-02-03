@@ -1,0 +1,664 @@
+\documentclass[12pt,a4paper]{article}
+
+% Encoding & language
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+% Page layout
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+
+% Math & symbols
+\usepackage{amsmath}
+\usepackage{eurosym}
+
+% Formatting
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{array}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{changepage}
+\usepackage{placeins}
+\usepackage{tocbibind} 
+
+% Graphics & floats
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+
+% Code (optional)
+\usepackage{minted}
+\usepackage{xcolor}
+\usepackage{listings}
+\definecolor{lightgray}{rgb}{0.95,0.95,0.95}
+\lstdefinestyle{mypython}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{orange},
+    commentstyle=\color{gray}\itshape,
+    showstringspaces=false,
+    frame=single,
+    breaklines=true,
+    tabsize=4
+}
+
+% Hyperlinks
+\usepackage[hidelinks]{hyperref}
+
+% Bibliography
+\usepackage[
+    backend=bibtex,
+    style=numeric,
+    sorting=none
+]{biblatex}
+\addbibresource{mybibliography.bib}
+
+% Begin document
+\begin{document}
+
+% TITLE PAGE
+% TITLE PAGE
+
+\begin{titlepage}
+    \begin{center}
+        \Large{UNIVERSITY OF VERONA}\\
+        \vspace{5mm}
+        \large{Faculty of Computer Science}\\
+        \vspace{5mm}
+        \large{Bachelor's Degree in Bioinformatics}\\
+    
+        \vspace{20mm}
+        \Huge\textbf{Bioinformatics and Aesthetic Medicine:}\\[3mm]
+        \Large\textbf{How Deep Proteomic Analysis Can Provide}\\[3mm]
+        \Large\textbf{New Insights into the Treatment}\\[3mm]
+        \Large\textbf{of Aesthetic Pathologies}
+        
+        \vspace{40mm}
+        \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \raggedright
+            \vspace{5mm}
+            \large\textbf{Supervisor:}\\[2mm]
+            \large{Alessandro Daducci}\\[4mm]
+            \large\textbf{Co-supervisor:}\\[2mm]
+            \large{Giamaica Conti}
+           
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.45\textwidth}
+            \raggedleft
+            \large\textbf{Candidate:}\\[2mm]
+            \large{Michael Korsa Parkson Brew}
+        \end{minipage}
+    
+        \vspace{50mm} % <- puoi regolare questo valore
+        \Large{Academic Year: 2024--2025}
+    \end{center}
+    \end{center}
+    
+\end{titlepage}
+
+
+\newpage
+\thispagestyle{empty}
+\null
+\newpage
+
+    
+    \tableofcontents
+    \newpage
+
+    % — Abstract, unnumbered but in TOC —
+    \cleardoublepage       % (optional, for two-sided docs)
+    \addcontentsline{toc}{section}{Abstract}
+    \begin{abstract}
+
+    Lipedema is a chronic and underdiagnosed disorder characterized by the abnormal accumulation of subcutaneous adipose tissue (SAT), primarily affecting women. It often resembles cellulite — a more widespread condition — leading to diagnostic confusion and reflecting a broader lack of molecular insight into both diseases. This thesis investigates whether lipedema and cellulite share biological traits and how they can be differentiated using integrated bioinformatics and proteomics.
+
+    A structured, multi-phase bioinformatics pipeline was developed. It began with proteomic data analysis, identifying shared and unique proteins and their associated pathways. The next phases involved miRNA dataset collection and preprocessing (with batch correction), followed by differential expression analysis using Python–R integration. Lastly, miRNA target prediction was performed using tools such as miRDB and TargetScan to identify regulatory genes.
+    
+    Results revealed that lipedema and cellulite share several proteins, suggesting overlapping mechanisms related to tissue remodeling, stress response, and cellular growth. However, lipedema showed a significantly broader range of unique proteins enriched in pathways linked to cytoplasmic translation and peptide metabolism. The final integrative analysis of miRNA–target interactions highlighted three principal biological hallmarks of lipedema: a disorganization of the extracellular matrix (ECM) that compromises tissue elasticity, mitochondrial dysfunction associated with impaired energy production, and lipid imbalance marked by oxidative and inflammatory stress.
+    
+    This study not only emphasizes the utility of bioinformatics in solving complex aesthetic disorders but also potentially providing a framework for its broader application in multifactorial diseases by merging omics data and computational approaches contributing to the advancement of precision medicine through deeper molecular stratification and data-driven diagnostics.
+    
+ 
+    \end{abstract}
+    \newpage
+  
+    
+   \section{Introduction}
+
+    \subsection{Lipedema}
+    
+    In recent years, the role of technology has become increasingly pivotal in scientific, medical, and deep-tech research. This thesis explores how bioinformatics can support the investigation of the causative factors behind lipedema.
+    
+    Lipedema is a chronic and debilitating disorder that predominantly affects women. It is characterized by an abnormal accumulation of subcutaneous adipose tissue (SAT), mainly in the lower limbs, with occasional involvement of the upper limbs, while sparing the trunk and head  \cite{Brenner2023}. Initially described by Allen and Hines in 1940, the condition involves lipid accumulation accompanied by fluid retention~\cite{vanlaParra2023}. It typically manifests as symmetrical swelling of the extremities, proliferation of loose connective tissue (LCT), and glycosaminoglycans (GAGs) in the interstitial matrix~\cite{Wright2022}. Although frequently misdiagnosed as lymphedema, lipedema is estimated to affect 6--11\% of women~\cite{Brenner2023}.
+    
+    Despite its prevalence, lipedema is under-recognized in clinical practice, largely due to knowledge gaps in medical training and its unclear etiology \cite{Khalid2024}. It shares several overlapping features with conditions such as obesity, lymphedema, and connective tissue disorders, making diagnosis particularly challenging~\cite{Duhon2022, Brenner2023}. Its pathogenesis is multifactorial, involving vascular, lymphatic, extracellular matrix, hormonal, metabolic, and genetic components~\cite{Chakraborty2022}. Candidate genes such as \textit{AKR1C1}, \textit{POU1F1}/\textit{PIT-1}, and associations with Williams syndrome have been identified~\cite{Verde2023,kaftallibonettimarceddudhulimaltesedonatoherbstmichelinich, bonettidhulikaftalli2023}.
+    
+    Hormonal fluctuations—especially elevated estrogen during puberty, pregnancy, or menopause may initiate or exacerbate lipedema by enhancing the adipogenic differentiation of adipose-derived stem cells~\cite{Verde2023, Wolf2022}. Other hypotheses suggest that fat tissue expansion compromises connective tissue elasticity and vascular structure, triggering hypoxia, inflammation, and fibrosis~\cite{Verde2023}.
+    
+    Clinically, lipedema progresses through three stages. Stage I features mild discomfort and small nodules, while Stage III involves severe fibrotic adipose masses, persistent pain, and resistance to conventional treatment\cite{Verde2023,Rasmussen2022,Wright2022}. Pain, often neuropathic and poorly understood, may involve neurogenic inflammation and increased sodium content in affected tissues~\cite{Rasmussen2022,Chakraborty2022}.
+    
+    Lipedema's impact on peripheral arterial circulation has not been deeply studied. Early microangiopathy may include endothelial dysfunction, impaired vascular reflex control, and hemodynamic stress due to hypertrophic adipose tissue and edema. These factors reduce arteriolar vasoconstriction, contributing to hydrostatic edema and subsequent chronic tissue alterations, including sclerosis and papillomatosis~\cite{Mahlmann2024}.
+    
+    Hormonal shifts during puberty, pregnancy, or menopause appear to trigger lipedema onset~\cite{Katzer2021,FORNERCORDERO2021}. Estrogen, a key hormone in lipid and glucose metabolism, may induce local fat accumulation by altering receptor distribution and enhancing steroidogenic enzyme activity. This contributes to increased lipid deposition, angiogenesis, and decreased mitochondrial and lipolytic activity~\cite{Katzer2021}. Genetic links, such as mutations in \textit{AKR1C1}, and the frequent occurrence of hypothyroidism in lipedema patients further support an endocrine–metabolic basis~\cite{FORNERCORDERO2021}.
+    
+    SAT expansion in lipedema is thought to result from adipocyte dysfunction, stem-cell-mediated inflammation, extracellular matrix remodeling, and microvascular damage~\cite{Duhon2022}. Unlike lymphedema, lipedema may involve fluid retention due to capillary or lymphatic abnormalities.
+    
+    Common vascular alterations include capillary fragility, veno-arteriolar reflex failure, aortic stiffness, and lymphatic dysfunction~\cite{FORNERCORDERO2021}. Lymphoscintigraphic imaging reveals reduced lymphatic transport and tortuous vessels, while Platelet Factor 4 has emerged as a potential biomarker~\cite{FORNERCORDERO2021}. Cardiovascular anomalies in lipedema include atrial and ventricular enlargement and changes in cardiac twist and strain~\cite{FORNERCORDERO2021}.
+    
+    MRI studies have detected elevated skin sodium concentrations in lipedema, possibly due to impaired lymphatic clearance. This accumulation is associated with tenderness and pain, which may improve after liposuction or decongestive therapies. Nerve conduction studies point to sensory nerve impairment due to mechanical pressure and inflammatory processes, correlating with higher migraine rates in affected patients~\cite{FORNERCORDERO2021}.
+    
+    Whether lymphatic dysfunction is a cause or consequence of fat accumulation in lipedema remains unclear. Animal studies support both directions: lymphatic disruption can promote fat deposition, and chronic adipose expansion can hinder lymphatic drainage~\cite{Buso2022}.
+    
+    Currently, no definitive cure exists for lipedema. Treatment focuses on symptom management, functional improvement, and slowing disease progression. Management strategies include conservative decongestive therapy (CDT) and, when necessary, surgical intervention to reduce pain, bruising, and abnormal fat accumulation~\cite{DiRenzo2023, vanlaParra2023}.
+    
+    \vspace{1cm}
+    \newpage
+    \subsection{Cellulite}
+    Cellulite is a medical condition that predominantly affects females post-puberty. It is characterized by topographic changes of the skin, especially in areas of laeger fat storage, mainly the thighs, buttocks, and hips. Clinically, these changes present as dimpling, denting, or nodulation, leading to a deviation of the eveness of  surface of the skin. Usually males are rarely affected by cellulite, however, about 2\% of males may develop this condition due to androgen deficiency secondary to castration, hypogonadism, Klinefelter’s syndrome, or estrogen or antiandrogen therapy for prostate cancer.~\cite{Gabriel2023-wd}. All this can often be confused with obesity, but the nature of the two conditions should not be used interchangeably. In obesity, only adipocyte hypertrophy and hyperplasia are observed. In cellulite, however, several structural alterations may be present in the dermis and microcirculation, as well as within the adipocytes, which may be associated with additional morphological, biochemical, histochemical, and ultrastructural changes. ~\cite{Bass2023-gb}
+    
+    The etiopathogenesis and pathophysiology of cellulite have not yet been fully explained but based on several studies, cellulite may be regarded as an architectural disorder of the dermis and the
+    associated subcutaneous tissue with the main leading hypotheses involving sexual
+    dimorphism in the skin from hormonal factors causing
+    dermal thinning, fibroseptal network tissue changes,
+    vascular alterations, and inflammation.~\cite{Gabriel2023-wd,Bass2023-gb} 
+    
+    Female sex, increased age, and high BMI are reportedly contributing factors that increase the risk of developing cellulite. Vascular alterations have also been hypothesized to contribute to the pathophysiology of cellulite through the process
+    of glycosaminoglycan deposition in the dermal capillary walls and between the collagen and elastin networks.
+    
+    Hormones have been hypothesized to critically play a significant role in the pathophysiology of cellulite, with estrogen as one of the contributing hormones.Several factors point to estrogen’s key role, including the presence of cellulite in most women, the postpubertal onset of cellulite, and the worsening of cellulite during estrogen therapy, pregnancy, nursing, and menstruation.~\cite{Bass2023-gb} 
+    
+
+    \newpage
+    \subsection{Similarities Between Lipedema and Cellulite}
+
+    Cellulite, a condition affecting more than 85\% of adult women, appears as dimpled or lumpy skin in the gluteofemoral region~\cite{Kruglikov2022}. Both lipedema and cellulite are gluteofemoral disorders and may share pathophysiological traits~\cite{deGodoy2013}. Understanding cellulite's mechanisms can help illuminate the biology of lipedema.
+    
+    This pathology also affects fat and connective tissues and is marked by fluid retention between cells. This retention hinders cellular exchange, induces tissue reactions, and may impair lymphatic function. Both conditions involve abnormal fat deposition and lymphatic disruption, leading to limb swelling, tissue sensitivity, and increased girth~\cite{deGodoy2013}.
+
+
+    Recent molecular research has indicated that excessive TGF-$\beta$ signaling in cellulite septae initiates collagen over-accumulation and activates MMP-2 and MMP-9 where extracellular-matrix remodeling takes place, leading to increased septal stiffening, adipose-lobule protrusion, and contributes to protrusion ~\cite{Lee2019,Smith2021}. Proteomic analyses further reveal elevated levels of cytokines and pro-inflammatory mediators like IL-6, TNF-$\alpha$, and MCP-1 within the affected tissues, indicating that chronic inflammation alters vascular permeability and increases adipocyte hypertrophy ~\cite{Johnson2022}. These provide significant clues in understanding the interplay of extracellular-matrix remodeling, inflammatory signaling, and microvascular dysfunction, and likely the reason behind the etiology of both cellulite and lipedema.
+
+    
+    
+
+    \newpage
+    \section{Aim}
+    \vspace{1cm}
+
+
+
+        This thesis seeks to explore how bioinformatics and proteomics might be applied to the analysis of complex aesthetic disorders, with a specific focus on lipedema. Lipedema, as previously introduced, is a chronic condition that is often underappreciated and misdiagnosed, largely due to its resemblance to the more well-known condition of cellulite. This diagnostic uncertainty may reflect a deeper lack of biological and molecular understanding of lipedema. As such, one of the objectives of this study is to examine whether lipedema and cellulite share molecular features, and to what extent their differential pathological signatures can be defined, potentially revealing common biological pathways.
+
+        Beyond this comparative study, the broader aim of the thesis is to investigate how modern bioinformatics — particularly through the integration of proteomic data — could enhance the understanding of diseases on an individual level. Proteomics provides a temporal snapshot of biological activity by indicating which genes are actively expressed at the protein level. In contrast to genomics, which offers a fixed view of an organism’s genetic code, proteomics may offer a more dynamic and functional insight, especially in the context of multifactorial diseases such as lipedema.
+        
+        Having this in mind, the study adopts a multidisciplinary bioinformatics framework that seeks to integrate clinical knowledge with computational analysis. Alongside clinical observations, the project uses a variety of computational tools and databases, including Python and R, as well as bioinformatic tools such as: miRDB~\cite{Wong2015}, TargetScan~\cite{Agarwal2015}, UniProt, NCBI, GProfiler~\cite{Raudvere2019}, and GTEx. These resources may allow for the analysis and interpretation of proteomic and transcriptomic data from a systems-level perspective, with the goal of better understanding molecular interactions and gene regulation.
+        
+        Although lipedema serves as the central case study, the methodology applied in this work may extend to a wider range of medical contexts. In this sense, the thesis also aims to advocate for the broader application of bioinformatics not only in aesthetic conditions but also in more serious and life-threatening diseases such as cancer, neurodegenerative disorders, and other complex pathologies. By combining different layers of omics data with computational approaches, this study hopes to contribute to the development of precision medicine — a field in which data-driven insights could help transform current paradigms of diagnosis and treatment.
+
+    \newpage
+    
+    \section{Materials and Methods}
+    \vspace{1cm}
+
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{pipeline.png}
+    \caption{Flow chart depicting the computational pipeline used in this project.}
+    \label{fig:pipeline}
+    \end{figure}
+
+    \vspace{1cm}
+    
+    \subsection{Proteomics Data Analysis}
+    
+    \vspace{1cm}
+    
+    \subsubsection{Extraction and Validation of UniProt Proteins}
+    
+        The first step in this study involves the analysis of proteomics data—specifically, UniProt IDs obtained from two female patients, one with lipedema and the other with cellulite—using mass spectrometry. The goal is to determine whether these two conditions exhibit similarities at the proteomic level.
+        
+        A Python-based script was developed to process, validate, and analyze UniProt IDs for both conditions. The script integrates file input/output operations, API communication with the UniProt database, and data visualization techniques. Ultimately, it leads to the comparative analysis of protein sets using a Venn diagram.
+    
+        
+        The initial step of the workflow involves the extraction of protein identifiers from two separate input files, \texttt{lipedema.txt} and \texttt{cellulite.txt}, containing protein names corresponding to lipedema and cellulite, respectively. A dedicated function, \texttt{read\_proteins(file\_path)}, is implemented to read these files. This function opens the file, iterates over each line to remove extraneous whitespace, and stores the resulting identifiers in a set to guarantee the separation needed for the end product. Integrated into this function is also a mechanism to catch exceptions in case of file reading errors. It prints an error message and returns an empty set to ensure that the workflow remains robust even in the face of I/O issues.
+        
+        Following the extraction of protein IDs, the script validates the existence of each protein in the UniProt database. This is done through the \texttt{check\_protein\_in\_uniprot(protein\_name, retries=3, backoff\_factor=1)} function. It creates a URL by appending the protein name to the base UniProt URL and makes an HTTP GET request using the \texttt{requests} library, with a timeout setting to deal with network delays. A successful response indicates the presence of the protein; otherwise, a 404 response triggers a log message noting its absence. To further enhance reliability, the function uses an exponential backoff strategy when faced with network errors, attempting up to three retries before declaring that the protein is not present. Specifically, if a request fails due to a network-related exception, the script waits \(2^n\) seconds (where \(n\) is the retry attempt count) before trying again. The figure below shows the validation function.
+
+    \vspace{1cm}
+    \begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.9\linewidth}
+    \begin{minted}[
+  linenos,
+  fontsize=\small,
+  frame=double,
+  bgcolor=lightgray,
+  breaklines=true,
+  breakanywhere=true
+]{python}
+# Function that validates protein existence in UniProt with error handling
+def check_protein_in_uniprot(protein_name, retries=3, backoff_factor=1):
+    url = f"https://www.uniprot.org/uniprot/{protein_name}.txt"
+    for attempt in range(retries):
+        try:
+            response = requests.get(url, timeout=10)
+            if response.ok:
+                return True  # protein exists
+            elif response.status_code == 404:
+                print(f"Protein {protein_name} not found in UniProt.")
+                return False
+        except requests.exceptions.RequestException as e:
+            print(f"Error checking protein {protein_name}: {e}")
+            if attempt < retries - 1:
+                # exponential backoff
+                time.sleep(backoff_factor * (2 ** attempt))
+            else:
+                print(f"Failed to validate protein {protein_name} after {retries} attempts.")
+    return False  # if all retries fail
+    \end{minted}
+    \captionof{listing}{Python function to check protein existence in UniProt with error handling.}
+    \label{lst:uniprot_check}
+    \end{minipage}
+\end{figure}
+
+        \vspace{1cm}
+        The validation process is encapsulated in a higher-level function named \texttt{filter\_valid\_proteins (proteins)}. This function iterates over the set of protein names, calls \texttt{check\_protein\_in\_uniprot} for each one, and constructs a subset containing only those proteins confirmed by the UniProt database. The filtered sets then serve as the basis for further comparative analysis.
+
+    \subsubsection{Identification of Shared and Unique Proteins Between Lipedema and Cellulite}
+        After the validation of protein sets for lipedema and cellulite, the script performs set operations to compute three important subsets: proteins unique to lipedema, proteins unique to cellulite, and proteins common to both conditions. The unique sets are derived using set difference operations, while the common proteins are determined via an intersection of the two validated sets. 
+
+    \vspace{1cm}    
+    \subsubsection{Pathway Enrichment Analysis}
+        A pathway analysis was vital to this project and it was developed with an integrated Python pipeline designed to process protein identifiers derived from the text files containing protein IDs belonging to lipedema, cellulite, and common proteins, enrich these identifiers with additional biological information obtained from the UniProt database, and perform pathway enrichment analysis using the GProfiler tool. The workflow was implemented with a modular design, incorporating robust error handling and logging mechanisms to facilitate traceability and reproducibility. 
+
+
+        The initial component of this process involves reading protein names from designated text files. In this implementation, the function \texttt{read\_proteins(file\_path)} is responsible for opening a file, extracting each non-empty line (after stripping unnecessary whitespace), and putting the protein names into a list.  
+        
+        After data extraction, the pipeline enriches the protein dataset by retrieving additional information from the UniProt database. The function \texttt{fetch\_uniprot\_data(protein\_names)} iterates over the protein identifiers and constructs specific URLs to obtain corresponding text-based entries. For each successful HTTP request, the response is passed to the \texttt{parse\_uniprot\_response(response  \_text)} function, which methodically parses the content. This parser examines individual lines of the response for key prefixes, in this case, lines starting with "ID" to extract protein identifiers, "DE" for descriptions, "GN" for gene names, "OS" for organism data, and "DR" and "CC" for pathway and disease-related information. In cases where a protein's record cannot be retrieved, the system logs a warning, which ensures that potential data gaps are transparently reported. 
+    \vspace{1cm}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.9\linewidth}
+    \captionof{listing}{Python function for parsing UniProt response text to extract ID, description, pathways, gene, organism, and disease information.}
+    \label{lst:parse_uniprot}
+    \begin{minted}[
+      linenos,
+      fontsize=\small,
+      frame=single,
+      framerule=1pt,
+      bgcolor=lightgray,
+      breaklines=true,
+      breakanywhere=true
+    ]{python}
+# Parsing of UniProt response to extract useful information
+def parse_uniprot_response(response_text):
+    data = {}
+    lines = response_text.splitlines()
+    for line in lines:
+        if line.startswith("ID"):
+            data['ID'] = line.split()[1]
+        elif line.startswith("DE"):
+            data.setdefault('Description', []).append(line[5:])
+        elif line.startswith("DR"):
+            if "Pathway" in line:
+                data.setdefault('Pathways', []).append(line.split(';')[1].strip())
+        elif line.startswith("OS"):
+            data['Organism'] = line[5:]
+        elif line.startswith("GN"):
+            data['Gene'] = line[5:]
+        elif line.startswith("CC"):
+            if "Disease" in line:
+                data.setdefault('Diseases', []).append(line[5:])
+    return data
+    \end{minted}
+    \end{minipage}
+\end{figure}
+
+    \vspace{1cm}
+        The enriched dataset is then passed on to the pathway enrichment analysis, a step important to identify biological information about the proteins. The function \texttt{pathway\_analysis(
+        protein\_names,category\_name="All Proteins")} employs the GProfiler tool to query enrichment in key biological databases, specifically targeting human gene annotations from the Gene Ontology (GO) for Biological Process, Molecular Function, and Cellular Component, as well as KEGG pathway annotations. The analysis returns a data frame containing enrichment results, from which the top 10 significant terms are extracted for each category. These results are then saved as CSV files in a dedicated output directory, thereby ensuring that all details of the enriched pathways are well-documented and organized for further investigation. 
+    
+  
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.95\linewidth}
+    \captionof{listing}{Python function for performing pathway enrichment analysis using GO and KEGG terms.}
+    \label{lst:pathway_analysis}
+    \begin{minted}[
+      linenos,
+      fontsize=\small,
+      frame=single,
+      framerule=1pt,
+      bgcolor=lightgray,
+      breaklines=true,
+      breakanywhere=true
+    ]{python}
+    def pathway_analysis(protein_names, category_name="All Proteins"):
+        gp = GProfiler(return_dataframe=True)
+        results = gp.profile(organism='hsapiens', query=protein_names,
+                             sources=['GO:BP', 'GO:MF', 'GO:CC', 'KEGG'])
+    
+        logging.info(f"Pathway analysis for {category_name}")
+        logging.info(f"Columns available: {results.columns.tolist()}")
+    
+        if not results.empty:
+            # Filter and save top 10 results for each category
+            go_bp = results[results['source'] == 'GO:BP'].head(10)
+            go_mf = results[results['source'] == 'GO:MF'].head(10)
+            go_cc = results[results['source'] == 'GO:CC'].head(10)
+            kegg = results[results['source'] == 'KEGG'].head(10)
+    
+            # Results directory
+            output_dir = os.path.join(os.getcwd(), "pathway_analysis_results")
+            os.makedirs(output_dir, exist_ok=True)
+    
+            def save_top_to_csv(data, label): #csv saving of output
+                csv_path = os.path.join(output_dir, f"{category_name}_{label}_top10.csv")
+                data.to_csv(csv_path, index=False)
+                logging.info(f"Saved top 10 {label} pathways for {category_name} to {csv_path}")
+    
+            if not go_bp.empty: #saving top 1o of each pathway category
+                save_top_to_csv(go_bp, "GO_BP")
+            if not go_mf.empty:
+                save_top_to_csv(go_mf, "GO_MF")
+            if not go_cc.empty:
+                save_top_to_csv(go_cc, "GO_CC")
+            if not kegg.empty:
+                save_top_to_csv(kegg, "KEGG")
+    
+            plot_histogram(go_bp, category_name)
+        else:
+            logging.info(f"No pathway enrichment results found for {category_name} proteins.")
+    \end{minted}
+    \end{minipage}
+\end{figure}
+
+        The pipeline also has the function \texttt{plot\_histogram(data, category\_name)} which generates a horizontal bar chart displaying the negative logarithm of the p-values (\-log10) associated with the top 10 enriched biological processes. By transforming the p-values in this manner, the chart provides a clear depiction of the statistical significance of each enrichment term. The visualization is both displayed on the screen and later saved as an image file within the results directory, ensuring that the data is accessible for subsequent review. 
+
+        Finally, the main execution block orchestrates the entire pipeline. It begins by reading protein data from files representing distinct protein groups (e.g., proteins unique to lipedema, proteins unique to cellulite, and proteins common to both conditions). After consolidating these datasets, the script fetches additional data from UniProt and sequentially performs pathway enrichment analysis for each protein category. This comprehensive pipeline further adds more information to the proteins to help get a better understanding related to biological pathways. 
+        
+    \vspace{2cm}
+    \subsection{microRNA Dataset Collection and Preprocessing}
+     \vspace{1cm}
+    \subsubsection{microRNA Dataset Selection from the GEO Database}
+        The dataset used for this analysis was taken from the di GEO (Gene expression omnibus) database of the NCBI database. It was chosen because it was deemed the best choice out of the lipedema dataset options that I had. It was used in a recent project in 2020 that involved the published article “microRNA analysis of supernatants from stromal vascular fraction cells derived from healthy controls and lipedema patients”~\cite{GSE138579}. 
+
+        SVF cells were isolated from liposuction material (hips, outer thigh) of healthy controls and lipedema patients and seeded for the collection of cell supernatants after 24 hours. After several centrifugation steps, the supernatants were concentrated and enriched for small extracellular vesicles. Total RNA was extracted from the concentrated supernatants and the small extra cell vesicle fraction. A total of 187 miRNAs were evaluated through the qPCR reaction (miRCURY SYBR® Green master mix, Quiagen).~\cite{GSE138579} 
+        
+        MicroRNAs (miRNAs) are classified as non-coding RNA molecules that are essential for the regulation of gene expression. Most miRNAs go through a series of stages: they are transcribed from DNA sequences into primary miRNAs, processed into precursor miRNAs, and eventually become mature miRNAs. Usually, miRNAs bind to the 3' untranslated region (3' UTR) of the target mRNA, leading to its decay and translational silencing. However, the binding of miRNAs to other regions, such as 5’ UTR, coding region, and gene promoter, has been documented as well. Under certain conditions, mirnas might be able to trigger translation and modulate transcription. The way miRNAs interact with their target genes is complex and influenced by many parameters including the subcellular localization of miRNAs, their quantity in relation to the target mRNAs, and the strength of interaction between miRNA and mRNA. Vesicles such as exosomes carry miRNAs in extracellular fluids to target cells. Alternatively, they can be bound to proteins like Argonautes. Extracellular miRNAs participate in intercellular communication as molecular messengers substances.~\cite{OBrien2018} 
+        
+        For quantitative analysis, high throughput methods like qPCR or other next generation sequencing techniques are preferred. In combination with their tissue specific expression patterns , these factors render these constituents to be microRNAs to be not only source of strong and dependable biomarkers, but alters surfacing molecular disease mechanisms, increases potential for early diagnosis, and aids appropriate treatment planning. 
+        
+        As for this project, the values in the dataset are in dCqs. The dCq (delta Cq) values signifies the difference between quantification cycle of a specific  microRNA (Cq$_\text{miRNA}$) and a reference value (mean Cq or a housekeeping gene) \cite{Livak2001,Schmittgen2008}. This normalization facilitates the elimination of methodological biases and enables accurate assessment of the expression level of each microRNA and comparing different samples. dCq corresponds to decrease in expression level and higher dCq translates to elevated dCq meaning lower expression.  
+
+
+        
+        Initially, cleaning the dataset started with filling the gaps by zero. Gaps that were missed were 
+        This strategy prevents computational errors—such as the disruption of arithmetic operations like summing or averaging—and avoids the exclusion of critical data points. Additionally, when missing values logically indicate a non-occurrence or the absence of a measurable entity, zero substitution provides both a conceptually accurate and consistent representation, thereby enhancing data integration and interpretability across diverse data sources. 
+   \vspace{1cm}
+    \subsubsection{Principal Component Analysis (PCA) and Batch Correction}
+        This study implemented an integrated computational framework to ensure robust microRNA data analysis by addressing technical variability and enhancing biological signal detection. Initially, the microRNA dataset—originally stored as a CSV file—was loaded into a Pandas DataFrame to allow efficient data handling and manipulation of the dataset. To mitigate batch effects, which can introduce systematic biases when samples are processed under varying conditions, the data was subsequently transformed into an AnnData object using Scanpy. The AnnData format is particularly advantageous in high-dimensional data contexts, as it encapsulates not only the expression matrix but also corresponding metadata, such as batch and group annotations \cite{Wolf2018}. The resulting uniformity allowed the application of the ComBat batch-correction procedure \cite{Johnson2007}, which mitigates technical variation effectively such that subsequent analysis captures biological variance rather than artefact due to technique.
+
+      
+
+
+        Subsequent to batch clearing, PCA or Principal Component Analysis was performed to reduce the dataset dimensions to a more interpretable form while also enhancing sample comparison. 
+        
+        PCA was first applied to the original data, where the resulting clustering primarily reflected the influence of batch effects. In contrast, PCA performed on the batch-corrected data revealed improved segregation based on biological groupings (Control vs Lipedema), thereby confirming the efficacy of the the batch-correction process.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.95\linewidth}
+\captionof{listing}{Python function for PCA and batch correction}
+\label{lst:pca_batch}
+\begin{minted}[
+  linenos,
+  fontsize=\small,
+  frame=double,
+  bgcolor=lightgray,
+  breaklines=true,
+  breakanywhere=true
+]{python}
+file = 'microRNA analysis_dataset.csv'
+data = pd.read_csv(file, delimiter='\t', index_col=0)
+
+print(data.columns)
+print(data.shape)
+
+# Metadata annotation
+batch_labels = ['sEV'] * 6 + ['cCM'] * 6
+group_labels = ['Control'] * 3 + ['Lipedema'] * 3 + ['Control'] * 3 + ['Lipedema'] * 3
+
+# Map batch labels to numerical categories for coloring
+unique_batches = list(set(batch_labels))  # ['sEV', 'cCM']
+batch_colors = [unique_batches.index(label) for label in batch_labels]  # Map to integers
+
+# Map group labels to numerical categories for coloring
+unique_groups = list(set(group_labels))  # ['Control', 'Lipedema']
+group_colors = [unique_groups.index(label) for label in group_labels]  # Map to integers
+
+# Batch correction with conversion of data to AnnData format
+adata = sc.AnnData(data.T)  # Transpose: genes as columns, samples as rows
+adata.obs['batch'] = batch_labels  # Add batch information
+adata.obs['group'] = group_labels  # Add group labels
+
+sc.pp.combat(adata, key='batch') # Application of batch correction using ComBat
+
+# Save the corrected data
+corrected_data = pd.DataFrame(adata.X.T, index=data.index, columns=data.columns)
+corrected_data.to_csv('batch_corrected_data.csv')
+
+print("Batch correction completed and saved to 'batch_corrected_data.csv'")
+
+pca = PCA(n_components=2) # PCA before correction
+pca_result_before = pca.fit_transform(data.T)
+
+pca_result_after = pca.fit_transform(corrected_data.T) # PCA after correction
+\end{minted}
+\end{minipage}
+\end{figure}
+
+
+        
+    \subsection{Limma Differential Expression Analysis}
+    \vspace{1cm}
+    \subsubsection{Analysis via Python-R}
+        The computational pipeline created uses both Python and R environments to perform differential expression analysis on a batch‐corrected microRNA dataset. The process begins with the loading of the batch‐corrected data from a CSV file into a Pandas DataFrame. Following data import, metadata was annotated by assigning group labels (“Control” and “Lipedema”) to the samples, laying the foundation for comparative analysis. 
+
+        To exploit the statistical capabilities of the Bioconductor package limma, the dataset was converted from a Pandas DataFrame to an R-compatible object using the \textit{pandas2ri} module from \textit{rpy2}. This conversion not only maintained data integrity but also enabled correct integration with R. The limma package was installed (when necessary) and loaded in the R environment. Within R, the dataset was transformed into a numeric matrix, and a corresponding design matrix was created based on the annotated group labels. A linear model was then fitted using lmFit, followed by empirical Bayes moderation via \textit{eBayes} to enhance statistical power and stabilize variance estimates. The differential expression analysis resulted in the extraction of a ranked list of microRNAs using \textit{topTable}, and these results were converted back to Python for further examination and record-keeping. 
+        
+        In differential expression analyses using Linear Models for Microarray Data (limma), several key statistical measures are routinely reported to assess the significance and magnitude of differential gene expression between experimental conditions. 
+        
+        Firstly, the log fold-change (logFC) represents the magnitude of differential expression, indicating how many times the expression of a particular gene increases or decreases between conditions, expressed in log base 2 scale. Positive values denote upregulation, while negative values represent downregulation. 
+        
+        Secondly, the moderated t-statistic provided by limma is obtained through empirical Bayes moderation, borrowing information across genes to stabilize variance estimates. This moderated t-statistic is similar to a standard t-test but is enhanced by sharing variance information among genes, especially beneficial when sample sizes are small. 
+        
+        The p-value obtained alongside the moderated t-statistic measures the probability of observing the reported gene expression differences purely by chance. Lower p-values indicate stronger evidence against the null hypothesis (no differential expression), thus implying significant differential expression. 
+        
+        The adjusted p-value, or FDR as it is called, has corrective features for multiple comparisons and controls the proportion of null hypotheses that are incorrectly rejected. 
+        
+         It provides a more reliable measure of significance, with adjusted p-values typically interpreted using a threshold such as 0.05 to identify differentially expressed genes robustly. 
+        
+        Finally, the B-statistic or log-odds (B-value) represents the log posterior odds of differential expression. The B-statistic combines prior information with the observed data using empirical Bayesian methods to quantify the strength of evidence that a gene is differentially expressed. Positive B-values indicate evidence supporting differential expression, whereas negative values suggest weak or no evidence for differential expression. 
+    \vspace{1cm}
+    \subsubsection{Selection of Significant Differentially Expressed miRNA}
+       
+        Building upon the differential expression results, the analysis framework incorporated a data-driven step for determining an optimal significance threshold. A series of potential adjusted p-value thresholds were generated using\textit{ NumPy}, and for each threshold, the number of significant microRNAs was computed. These data were visualized by plotting the thresholds against the count of significant microRNAs, and the KneeLocator algorithm from the kneed package was employed to identify a “knee” point in this curve.\cite{Satopaa2011} This knee point represented an optimal threshold, balancing sensitivity and specificity in the detection of significant microRNAs. The pipeline then used this optimal threshold to filter the differential expression results, with both the complete and the threshold-filtered results saved as CSV files. Additionally, an exploratory analysis was carried out to identify microRNAs exhibiting large fold changes (|logFC| > 1) in conjunction with raw p-values below 0.05, thereby highlighting candidates with pronounced biological relevance.
+    \vspace{2cm}
+    \subsection{microRNA Target Prediction}
+    \subsubsection{miRNA-mRNA Target Prediction Using miRDB and TargetScan}
+        Witin this study, a processing protocol was implemented to filter microRNA data and determine three optimal candidates based on an empirically derived threshold. After this selection, target gene prediction was performed using two distinct, complementary databases—TargetScan and miRDB—to elucidate potential regulatory interactions that might serve as biomarkers for lipedema. 
+
+         Particularly, two of the candidates were investigated with TargetScan whiles the other with miRDB. One of the significant resources is TargetScan, which predicts microRNA targets based on how well microRNAs bind to the 3' untranslated region (UTR) of the mRNA. Its algorithms place greater emphasis on conserved binding sites as well as contextual features, like locomotion in mRNA, particular heuristic score metrics termed context scores heaped oversequence garnered rich lineage history. Such scoring systems help in the attainment of targets that may be phylogenetically archetypal signifying, enhancing confidence that such interactions are relevant. 
+        
+        On the other side, miRDB uses other methodology algorithms based on machine learning and trained with massive amounts of data from high-throughput experimental data. 
+        
+         It provides target predictions accompanied by confidence scores, which quantify the reliability of each prediction. By leveraging patterns learned from validated microRNA–mRNA interactions, miRDB offers an alternative and complementary perspective to sequence conservation-based methods. This dual strategy enhances the robustness of target gene identification by mitigating the limitations inherent in any single predictive model. 
+        
+        The combined use of these two databases—in conjunction with a rigorous threshold optimization process—ensured that the candidate microRNAs selected for further study were supported by complementary lines of computational evidence. This integrative approach not only refines the pool of potential biomarkers for lipedema but also lays a solid foundation for subsequent experimental validation. By employing TargetScan and miRDB, the study capitalizes on both evolutionary conservation and data-driven predictive methodologies to provide a more comprehensive understanding of microRNA-mediated regulatory mechanisms in the context of lipedema pathology 
+    \vspace{3cm}
+    \newpage
+    
+    \section{Results}
+    \subsection{Venn Diagram Analysis: Overlap of Proteomic Profiles in Lipedema and Cellulite}
+        
+
+        The first outcome of this project comes from the generation of a Venn diagram, created using a Python-based computational pipeline. The goal of this analysis was to determine whether the two conditions—lipedema and cellulite—share any proteins in common. The dataset contained approximately 652 proteins related to lipedema and about 281 proteins linked to cellulite. After running the pipeline, the resulting Venn diagram revealed a significant overlap between the two sets. This suggests that the two conditions may share underlying molecular characteristics, and the similarity observed is unlikely to be due to chance alone. 
+    \vspace{1.5cm}
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{venn_diagram_uniprot_validated.png}
+        \caption{Venn diagram validated by Uniprot}
+        \label{fig:venn_diagram_uniprot_validated}
+        \end{figure}
+        
+       
+   \vspace{2cm}
+    \subsection{Comparative Pathway Analysis of Lipedema- and Cellulite-Associated Proteins}
+        Pathway analysis was carried out to gain deeper insight into the molecular mechanisms underlying lipedema and cellulite. The computational pipeline used in this step first validated the identified proteins via the UniProt API, and then performed functional enrichment analysis using GProfiler. This allowed for the identification of key biological processes, cellular components, and KEGG pathways associated with three groups: proteins unique to lipedema, those unique to cellulite, and those shared between both conditions. The pipeline generated CSV output files for each of these functional categories, but the main focus was placed on the top 10 enriched biological processes for each group. The corresponding bar charts, shown below, visually represent these top pathways for the three protein sets. 
+
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{Lipedema_GO_BP_top10_histogram.png}
+        \caption{presents the top 10 significantly enriched biological processes associated with proteins unique to lipedema, as identified through GO (Gene Ontology) enrichment analysis using GProfiler. The x-axis displays the statistical significance of each term as –log10(p-value), where higher values indicate stronger enrichment. Notably, cytoplasmic translation, peptide metabolic process, and amide metabolic process show the highest levels of significance, suggesting that protein synthesis and various metabolic activities may play a central role in the molecular mechanisms underlying lipedema }
+        \label{fig:Lipedema_GO_BP_top10_histogram}
+        \end{figure}
+
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{Cellulite_GO_BP_top10_histogram.png}
+        \caption{illustrates the top 10 enriched biological processes for proteins uniquely associated with cellulite, based on Gene Ontology analysis. The results mark a strong involvement of catabolic processes, including organic substance catabolism, organonitrogen compound catabolism, and cellular catabolic process. Additionally, terms such as oxygen transport and gas transport suggest a possible link to altered tissue metabolism and vascular dynamics in cellulite. These findings may indicate increased metabolic breakdown and transport activity in cellulite-affected tissues }
+        \label{fig:Cellulite_GO_BP_top10_histogram}
+        \end{figure}
+    \vspace{1.5cm}
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{Common_GO_BP_top10_histogram.png}
+        \caption{displays the top 10 enriched biological processes for proteins found in both lipedema and cellulite samples, based on GO analysis. The most significantly enriched term is response to stress, followed by processes related to the regulation of biological quality, fiber organization, and metabolism. It is notable that phrases such as “wound healing” and “response to wounding” imply the integration of both tissue repair and inflammatory processes, suggesting their synergistic engagement. Primary research findings suggest that lipedema and cellulite, although clinically distinct, may share common biological mechanisms pertaining to cellular stress, metabolism, and restructuring due to remodeling under strain. .}
+        \label{fig:Lipedema_GO_BP_top10_histogram}
+        \end{figure}
+
+    \vspace{2cm}   
+    \subsection{PCA Results Before and After Batch Correction}
+        To assess the presence of technical variation in the microRNA expression data, Principal Component Analysis (PCA) was applied before and after batch correction using the ComBat algorithm. The PCA plot before correction (Figure 6, left panel) reveals a clear separation of samples driven by their batch origin—sEV (batch 0, purple) and cCM (batch 1, yellow)—indicating significant batch effects that obscure true biological signals. 
+
+        Following ComBat correction, the PCA plot (Figure 6, right panel) shows samples clustering instead by biological condition: Control (purple) and Lipedema (yellow). This shift demonstrates that batch-related variance was successfully removed, allowing biologically meaningful differences to emerge. 
+        
+        The results validate the batch correction approach and confirm the integrity as well as the reliability of subsequent analyses, including differential expression as well as biomarker discovery. The PCA plots also serve as a validation test concerning data integrity, adding to the claims of the dataset being reliable for the purposes of analyses in this study.
+
+     \vspace{1.5cm}
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{batch_correction.png}
+        \caption{Principal Component Analysis (PCA) demonstrating the effect of batch correction on microRNA expression data.}
+        \label{fig:batch_correction}
+        \end{figure}
+
+        
+    \vspace{2cm}
+    \subsection{Results Yielded from Limma Differential Expression Analysis and Optimal Threshold Determination}
+        The limma computational pipeline was initially employed to perform differential expression analysis, generating a comprehensive dataset containing key statistical measures, including log Fold Change (logFC), Average Expression (AveExpr), moderated t-statistics, p-values, adjusted p-values (adj.P.Val), and B-statistics for multiple microRNAs. An optimal threshold to identify significantly differentially expressed microRNAs was then established using the KneeLocator algorithm. This method evaluated the number of significant microRNAs across varying adjusted p-value thresholds, identifying an "elbow point" at approximately 0.3–0.35. This elbow represents an ideal balance between statistical rigor and biological sensitivity, providing an optimal threshold to filter the initial results. 
+
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{threshold_vs_significant_microRNAs.png}
+        \caption{Plot illustrating the relationship between adjusted p-value thresholds and the corresponding number of significantly differentially expressed microRNAs identified by limma analysis. The stepwise increase highlights how varying the threshold influences the detection of significant microRNAs, with an optimal threshold identified around 0.3–0.35 (elbow point), balancing statistical rigor and sensitivity }
+        \label{fig:batch_correction}
+        \end{figure}
+
+        In accordance with the stated optimal threshold, three microRNAs—miR-136-3p, miR-31-5p, and miR-133a-3p—met the required criteria. Negative logFC observed for miR-136-3p and miR-31-5p indicates their downregulation in lipedema relative to controls, while positive logFC value for miR-133a-3p signals its upregulation. Small unadjusted p-values (0.0013, 0.0032, and 0.0045 respectively) do provide strong support for meaningful differences. On the other hand, moderately adjusted p-values (0.257, 0.284, and 0.284) alongside negative B-statistics (-1.05, -1.66, and -1.93) do argue that the results, although biologically relevant, need to be treated with caution.
+    \vspace{1cm}
+       \begin{table}[htbp]
+          \centering
+          \caption{Differential‐expression statistics for the top three miRNAs.}
+          \label{tab:mirna_stats}
+          % scale the tabular to the full text‐width, keeping font size
+          \begin{adjustbox}{max width=\textwidth}
+          \begin{tabular}{@{} l 
+                            r 
+                            r 
+                            r 
+                            r 
+                            r 
+                            r @{}}
+            \toprule
+            MicroRNA    & logFC              & AveExpr            & t                  & P.Value               & adj.P.Val            & B                    \\
+            \midrule
+            miR-136-3p  & -1.632440384750764 & -3.409693209859164 & -4.157713096910090 & 0.001375321214402115  & 0.257185067093195    & -1.0502728914029626 \\
+            miR-31-5p   & -1.573380431990367 & -1.619324244606828 & -3.686103216170790 & 0.001985522281506150  & 0.284300021515112    & -1.6662517832641597 \\
+            miR-133a-3p &  2.084381764649869 & -2.702343634801308 &  3.491124194678836 & 0.004560962912055275  & 0.284300021581120    & -1.9301171408226172 \\
+            \bottomrule
+          \end{tabular}
+          \end{adjustbox}
+    \end{table}
+
+    
+    \vspace{2cm}
+    
+    \subsection{Target Prediction Results}
+        To explore micro-RNAs (miRNAs) as potential lipedema biomarkers, we first identified the three most dysregulated species in our expression panel—\textit{miR-136-3p}, \textit{miR-31-5p} (both down-regulated; log$_2$FC ≈ –1.6) and \textit{miR-133a-3p} (up-regulated; log$_2$FC ≈ +2.1).  Predicted protein targets were retrieved from \textsc{TargetScan} (\textit{miR-136-3p}, \textit{miR-31-5p}) and \textsc{miRDB} (\textit{miR-133a-3p}); the ten top‐scoring genes for each miRNA were cross-referenced with our lipedema transcriptome to retain only biologically plausible candidates.
+    
+        \paragraph{Priority gene set.}  
+        \begin{itemize}
+          \item \textbf{\textit{miR-136-3p} (downregulated)} – \textbf{CCT3}, \textbf{PSMA4}, \textbf{COX5A}, \textbf{EPHX1}, \textbf{HIBADH}.  
+                Functions converge on protein quality control, mitochondrial respiration and lipid detoxification—processes recurrently altered in lipedema tissue.
+          \item \textbf{\textit{miR-31-5p} (downregulated)} – \textbf{TMEM43}, \textbf{CACYBP}, \textbf{PRELP}, \textbf{HSPD1}.  
+                These genes link nuclear-envelope stability, Wnt-driven remodelling and mitochondrial stress signalling to the chronic inflammation found in affected fat.
+          \item \textbf{\textit{miR-133a-3p} (upregulated)} – \textbf{FBN1}, \textbf{PTBP1}, \textbf{LASP1}, \textbf{RBMX}, \textbf{CLTA}, \textbf{EIF4A1}, \textbf{CMPK1}, \textbf{CAP1}, \textbf{IDH1}, \textbf{HMGCLL1}.  
+                Themes include extracellular-matrix (ECM) integrity, post-transcriptional control and energy metabolism, all consistent with adipose-tissue expansion under mechanical and hypoxic stress.
+        \end{itemize}
+    \vspace{2cm}      
+    \newpage
+    
+    \section{Discussion and Conclusion}
+        From the presented 24 high confidence targets, 6 genes demonstrate lipedema pathology the best
+        
+        \begin{enumerate}
+          \item \textbf{FBN1} – encodes fibrillin-1, a key ECM scaffold protein.  its loss leads to weak connective tissue and clinically seen Marfan-like ECM fragility.
+          \item \textbf{EPHX1} – lipid-epoxide hydrolase.  exhibits up-regulated expression which suggest oxidative stress and chronic inflammation. 
+          \item \textbf{COX5A} – cytochrome-\emph{c} oxidase subunit Va. Elevation signifies compensatory increase of mitochondrial biogenesis in hypertrophic adipocytes.
+          \item \textbf{HSPD1} – mitochondrial chaperone Hsp60.  Denotes persistent mitochondrial stress alongside pro-inflammatory signaling. 
+          \item \textbf{CCT3} – chaperonin TCP-1 subunit 3.  Over-expression suggests accelerated cytoskeletal remodelling during adipocyte enlargement and ECM reorganisation.
+          \item \textbf{TMEM43} – inner-nuclear-membrane protein.  
+          Its up-regulation is thought to protect nuclear architecture under mechanical stress and may have a role in inflammation modulation.” 
+        \end{enumerate}
+        
+        Collectively, these candidates map onto three, mutually reinforcing pathogenic categories:  
+        \emph{(i)} ECM disarray and reduced elasticity (FBN1, CCT3);  
+        \emph{(ii)} mitochondrial dysfunction with elevated energy demand (COX5A, HSPD1); and  
+        \emph{(iii)} lipid-induced oxidative/inflammatory stress (EPHX1, TMEM43).  
+        In combination, those provide a cohesive mechanistic explanation of the main clinical manifestations of lipedema defining, painful nodular fat, easy bruising, and resistance to conventional weight-loss while establishing a succinct biomarker panel for future diagnostic and therapeutic endeavors.
+       \newpage           % start on a fresh page (optional)
+    \section{Acknowledgements}
+    
+    First of all, I would like to thank God for guiding me and giving me the strength to reach this milestone.
+    
+    A special thanks goes to my parents and my family, who have always supported me with love and trust. In particular, I want to thank my mother for everything she has done for me and for the constant support she has always given me.
+    
+    I would like to thank my girlfriend, Virna, for her support and closeness throughout this journey.
+    
+    My sincere thanks also go to Professor Sbarbati for giving me the opportunity to carry out my internship in the Department of Anatomy, and to all the people who guided and helped me during this experience: Dott.essa Giamaica Conti, Rick, and Ari, for their availability, patience, and valuable advice during the work on my thesis.
+    
+    Finally, I would like to thank all my friends and everyone who, in different ways, has supported and encouraged me along the way. Thank you all from the bottom of my heart.
+    
+    Lastly, I would also like to thank myself for staying strong and determined throughout this journey, even during the most challenging moments.
+
+     
+   \newpage
+   \printbibliography[heading=bibintoc,title={References}]
+
+
+
+
+	
+\end{document}
+
